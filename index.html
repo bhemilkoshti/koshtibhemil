@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cloud Cost Calculator Pro</title>
     <link rel="stylesheet" href="STYLE.CSS">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -14,7 +13,7 @@
     <div class="container">
         <!-- Header -->
         <div class="header glass-effect">
-            <h1>☁️ Cloud Cost Calculator </h1>
+            <h1>☁️ Cloud Cost Calculator</h1>
             <p>Enterprise-grade cloud infrastructure cost analysis</p>
         </div>
 
@@ -34,14 +33,17 @@
                         <label>💾 Storage (GB)</label>
                         <input type="number" id="storage" value="100" min="0">
                     </div>
+
                     <div class="input-group">
                         <label>🖥️ Compute Hours/Month</label>
                         <input type="number" id="computeHours" value="730" min="0">
                     </div>
+
                     <div class="input-group">
                         <label>💰 Compute Cost per Hour ($)</label>
                         <input type="number" id="computeRate" value="0.10" step="0.01" min="0">
                     </div>
+
                     <div class="input-group">
                         <label>📤 Data Out (GB/month)</label>
                         <input type="number" id="dataOut" value="50" min="0">
@@ -53,6 +55,7 @@
                         <div class="cost-amount" id="totalCost">$0.00</div>
                         <div class="cost-period">Monthly Total</div>
                     </div>
+
                     <div class="cost-breakdown">
                         <div class="cost-item">
                             <span class="cost-label">💾 Storage Cost</span>
@@ -67,25 +70,21 @@
                             <span class="cost-value" id="dataTransferCost">$0.00</span>
                         </div>
                     </div>
+
                     <button class="reset-btn" onclick="resetCalculator()">🔄 Reset All</button>
                 </div>
             </div>
         </div>
 
-        
-        
-
-       
-
-        <!-- 📊 Real-Time Storage Cost - WITH WEEKLY/MONTHLY/YEARLY -->
+        <!-- Real-Time Storage Cost -->
         <section class="graph-section glass-effect">
             <h2 class="section-title">📊 Real-Time Storage Cost Analysis</h2>
             
             <div class="duration-selector">
-    <button class="duration-btn active" data-duration="weekly">📅 Weekly</button>
-    <button class="duration-btn" data-duration="monthly">📆 Monthly</button>
-    <button class="duration-btn" data-duration="yearly">📈 Yearly</button>
-</div>
+                <button class="duration-btn active" data-duration="weekly">📅 Weekly</button>
+                <button class="duration-btn" data-duration="monthly">📆 Monthly</button>
+                <button class="duration-btn" data-duration="yearly">📈 Yearly</button>
+            </div>
 
             <div class="input-group">
                 <label>💾 Storage Size (GB)</label>
@@ -102,7 +101,7 @@
         </section>
     </div>
 
-    <script src="script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
