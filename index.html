@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloud Cost Calculator - INR (FIXED)</title>
+    <title>Cloud Cost Calculator - INR & USD</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -96,14 +96,15 @@
         }
 
         .total-cost {
-            font-size: 2.5em;
+            font-size: 2.2em;
             font-weight: bold;
             margin-bottom: 10px;
+            line-height: 1.4;
         }
 
         .cost-breakdown {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             gap: 15px;
             margin-top: 20px;
         }
@@ -117,8 +118,9 @@
 
         .cost-item span {
             display: block;
-            font-size: 1.2em;
+            font-size: 1.1em;
             font-weight: bold;
+            line-height: 1.5;
         }
 
         .chart-container {
@@ -129,7 +131,6 @@
             height: 400px;
         }
 
-        /* ✅ FIXED PROVIDER BUTTONS */
         .providers {
             display: flex;
             gap: 10px;
@@ -190,18 +191,24 @@
             border-color: #28a745;
         }
 
-        @media (max-width: 768px) {
-            .main-content { grid-template-columns: 1fr; padding: 20px; }
-            .providers { flex-direction: column; }
-            .time-selector { grid-template-columns: repeat(3, 1fr); }
+        small {
+            font-size: 0.85em;
+            opacity: 0.95;
         }
 
-        .status {
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            font-weight: bold;
-            text-align: center;
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+
+            .providers {
+                flex-direction: column;
+            }
+
+            .time-selector {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
     </style>
 </head>
@@ -209,13 +216,13 @@
     <div class="container">
         <div class="header">
             <h1>☁️ Cloud Cost Calculator</h1>
-            <p>✅ FIXED: Total Price & Graph update instantly!</p>
+            <p>Show cost in both ₹ INR and $ USD</p>
         </div>
 
         <div class="main-content">
             <div class="calculator-section">
                 <h2 class="section-title">📊 Configuration</h2>
-                
+
                 <div class="providers">
                     <button class="provider-btn active aws" data-provider="aws">🌥️ AWS</button>
                     <button class="provider-btn azure" data-provider="azure">🔵 Azure</button>
@@ -251,19 +258,20 @@
                 </div>
 
                 <div class="cost-display">
-                    <div class="total-cost" id="totalCost">₹0</div>
+                    <div class="total-cost" id="totalCost">₹0<br><small>$0.00</small></div>
                     <div id="providerLabel">AWS - Total Cost</div>
+
                     <div class="cost-breakdown">
                         <div class="cost-item">
-                            <span id="computeCost">₹0</span>
+                            <span id="computeCost">₹0<br><small>$0.00</small></span>
                             <small>Compute</small>
                         </div>
                         <div class="cost-item">
-                            <span id="storageCost">₹0</span>
+                            <span id="storageCost">₹0<br><small>$0.00</small></span>
                             <small>Storage</small>
                         </div>
                         <div class="cost-item">
-                            <span id="transferCost">₹0</span>
+                            <span id="transferCost">₹0<br><small>$0.00</small></span>
                             <small>Transfer</small>
                         </div>
                     </div>
@@ -285,6 +293,7 @@
                 this.currentProvider = 'aws';
                 this.currentTimePeriod = 1;
                 this.chart = null;
+                this.exchangeRate = 83; // 1 USD = 83 INR
                 this.init();
             }
 
@@ -294,26 +303,15 @@
             }
 
             bindEvents() {
-                // ✅ PROVIDER BUTTONS - PERFECTLY FIXED
                 document.querySelectorAll('.provider-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
-                        console.log('🔄 Provider clicked:', e.currentTarget.dataset.provider);
-                        
-                        // Update active button
                         document.querySelectorAll('.provider-btn').forEach(b => b.classList.remove('active'));
                         e.currentTarget.classList.add('active');
-                        
-                        // Update current provider
                         this.currentProvider = e.currentTarget.dataset.provider;
-                        
-                        // IMMEDIATELY update everything
                         this.updateDisplay();
-                        
-                        console.log('✅ Provider changed to:', this.currentProvider);
                     });
                 });
 
-                // Time buttons
                 document.querySelectorAll('.time-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
@@ -323,7 +321,6 @@
                     });
                 });
 
-                // Input changes
                 document.querySelectorAll('input').forEach(input => {
                     input.addEventListener('input', () => this.updateDisplay());
                 });
@@ -342,49 +339,51 @@
                 return '₹' + Math.round(amount).toLocaleString('en-IN');
             }
 
+            formatUSD(amount) {
+                return '$' + (amount / this.exchangeRate).toFixed(2);
+            }
+
             updateDisplay() {
-                // Get input values
                 const instances = parseFloat(document.getElementById('computeInstances').value) || 0;
                 const storageGB = parseFloat(document.getElementById('storageGB').value) || 0;
                 const dataTransferGB = parseFloat(document.getElementById('dataTransferGB').value) || 0;
                 const computeHours = parseFloat(document.getElementById('computeHours').value) || 0;
 
-                // Get current provider pricing
                 const pricing = this.getPricing(this.currentProvider);
                 const months = this.currentTimePeriod;
 
-                // Calculate costs
                 const computeCost = instances * pricing.compute * computeHours * months;
                 const storageCost = storageGB * pricing.storage * months;
                 const transferCost = dataTransferGB * pricing.transfer;
                 const totalCost = computeCost + storageCost + transferCost;
 
-                // ✅ UPDATE TOTAL PRICE IMMEDIATELY
-                document.getElementById('totalCost').textContent = this.formatINR(totalCost);
-                document.getElementById('computeCost').textContent = this.formatINR(computeCost);
-                document.getElementById('storageCost').textContent = this.formatINR(storageCost);
-                document.getElementById('transferCost').textContent = this.formatINR(transferCost);
-                
-                // Update provider label
-                document.getElementById('providerLabel').textContent = 
+                document.getElementById('totalCost').innerHTML =
+                    this.formatINR(totalCost) + "<br><small>" + this.formatUSD(totalCost) + "</small>";
+
+                document.getElementById('computeCost').innerHTML =
+                    this.formatINR(computeCost) + "<br><small>" + this.formatUSD(computeCost) + "</small>";
+
+                document.getElementById('storageCost').innerHTML =
+                    this.formatINR(storageCost) + "<br><small>" + this.formatUSD(storageCost) + "</small>";
+
+                document.getElementById('transferCost').innerHTML =
+                    this.formatINR(transferCost) + "<br><small>" + this.formatUSD(transferCost) + "</small>";
+
+                document.getElementById('providerLabel').textContent =
                     `${this.currentProvider.toUpperCase()} - ${this.currentTimePeriod} Month${this.currentTimePeriod > 1 ? 's' : ''}`;
 
-                // Update chart
                 this.updateChart();
-
-                console.log(`💰 ${this.currentProvider.toUpperCase()}: Total ₹${totalCost.toLocaleString('en-IN')}`);
             }
 
             updateChart() {
                 const ctx = document.getElementById('costChart').getContext('2d');
-                
+
                 const instances = parseFloat(document.getElementById('computeInstances').value) || 0;
                 const storageGB = parseFloat(document.getElementById('storageGB').value) || 0;
                 const dataTransferGB = parseFloat(document.getElementById('dataTransferGB').value) || 0;
                 const computeHours = parseFloat(document.getElementById('computeHours').value) || 0;
                 const months = this.currentTimePeriod;
 
-                // Calculate for ALL providers
                 const awsTotal = instances * 8.30 * computeHours * months + storageGB * 1.91 * months + dataTransferGB * 7.47;
                 const azureTotal = instances * 9.96 * computeHours * months + storageGB * 1.74 * months + dataTransferGB * 7.22;
                 const gcpTotal = instances * 7.89 * computeHours * months + storageGB * 1.66 * months + dataTransferGB * 9.96;
@@ -410,13 +409,21 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: { display: false }
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => {
+                                        const value = context.raw;
+                                        return ` ${this.formatINR(value)} / ${this.formatUSD(value)}`;
+                                    }
+                                }
+                            }
                         },
                         scales: {
                             y: {
                                 beginAtZero: true,
                                 ticks: {
-                                    callback: value => '₹' + Math.round(value).toLocaleString('en-IN')
+                                    callback: (value) => '₹' + Math.round(value).toLocaleString('en-IN')
                                 }
                             }
                         }
@@ -425,7 +432,6 @@
             }
         }
 
-        // Start calculator
         new CloudCostCalculator();
     </script>
 </body>
